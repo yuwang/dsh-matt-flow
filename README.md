@@ -1,6 +1,6 @@
 # dsh-matt-flow
 
-把本机 `~/.agents/skills` 里的 [Matt Pocock Agent Skills](https://github.com/mattpocock/skills) 套件，编成一条**带前置条件的开发工作流**，作为 DSH 的一个 agent 预设。
+把 [Matt Pocock Agent Skills](https://github.com/mattpocock/skills) 套件编成一条**带前置条件的开发工作流**，作为 DSH 的一个 agent 预设。技能从 `~/.agents/skills` 读取，缺了会自动安装。
 
 它不复制、不改写任何技能；`npx skills update` 之后行为自动跟随上游。
 
@@ -95,13 +95,27 @@ Matt 的套件有一条前置：`/setup-matt-pocock-skills`，用来定下 issue
 
 ## 安装
 
+从 GitHub 装：
+
+```bash
+dsh plugin add git+https://github.com/yuwang/dsh-matt-flow
+```
+
+或在 DSH 的 Plugins 页面填这个地址。装完**重启一次**，再**新建会话**，在预设置换器里选「Matt 工程流 / Matt Flow」。
+
+也可以在本地开发时用目录安装：
+
 ```bash
 dsh plugin --profile desktop add /path/to/dsh-matt-flow
 ```
 
-或在 DSH 的 Plugins 页面用本地目录安装。安装后**新建会话**，在预设置换器里选「Matt 工程流 / Matt Flow」。
-
 已存在的会话不受影响：预设只在新建会话时装入。
+
+### 装好之后
+
+第一次进规范阶段前，仓库里需要有一份 `docs/agents/issue-tracker.md` 说明 issue 放在哪。没配过就跑一次 `/setup-matt-pocock-skills`，或者直接让模型按本地 markdown 写一份。
+
+技能套件（37 个）会在预设首次激活时自动安装到 `~/.agents/skills`，前提是机器上有 `node` 和 `npx`。装了什么、成没成功，让模型调 `flow_skills` 就能看到。
 
 ### 在哪里选
 
@@ -110,10 +124,6 @@ dsh plugin --profile desktop add /path/to/dsh-matt-flow
 
 装好后若菜单里还没出现，刷新页面一次——预设名单在连接重置时刷新；当前已存在的会话不会切过去，必须新建。
 
-> 本机 `desktop` profile 已经装好（bundle 在 profile 的 bundles 列表里，`preset-matt` 行 active）。**改完 `index.js` 必须重启 DSH**：预设子树持有的模块在 Node 的 ESM 缓存里，`install_bundle` 会明确返回 `restart-required`（原因 `unmanaged-plugin`），热重载不会换掉已加载的代码。重启后看系统临时目录里的 `dsh-matt-flow-load.log` 确认版本号（macOS/Linux 在 `/tmp`，Windows 在 `%TEMP%`）。
->
-> **改完 `client.js` 必须刷新页面**：浏览器侧模块由 `dsh.client` 清单扫描后加载，页面不刷新就拿不到新模块。改完先 `node --check client.js`，再到页面上刷新；注册成功后可在 `tool.call.toolview` 的 occupant 里看到 `flow_ask`。
-
 ## 用起来是什么样
 
 1. 新建会话，选 `Matt Flow`，把你的想法说出来。
@@ -121,6 +131,15 @@ dsh plugin --profile desktop add /path/to/dsh-matt-flow
 3. 它调 `flow_stage({action:"advance", to:"spec"})` 前进时，前置条件要求它先把决策写进 evidence。
 4. 规范写进 `.scratch/<feature>/spec.md`，任务单写进 `.scratch/<feature>/issues/`，实现阶段逐张任务单走 `tdd`，最后 `code-review`。
 5. 随时 `flow_stage({action:"status", feature:"..."})` 看进度和下一阶段的前置条件。
+
+## 本地开发
+
+改完代码后：
+
+- **`index.js` 改动**：必须重启 DSH。预设子树持有的模块在 Node 的 ESM 缓存里，`install_bundle` 会返回 `restart-required`（原因 `unmanaged-plugin`），热重载换不掉已加载的代码。重启后看系统临时目录的 `dsh-matt-flow-load.log` 确认版本号（macOS/Linux 在 `/tmp`，Windows 在 `%TEMP%`）。
+- **`client.js` 改动**：先 `node --check client.js`，再刷新页面。浏览器侧模块由 `dsh.client` 清单扫描后加载，不刷新拿不到新模块；注册成功后可在 `tool.call.toolview` 的 occupant 里看到 `flow_ask`。
+- **改完先跑一遍**：`npm test`（约 0.2 秒，43 条断言，不依赖网络）。
+
 
 ## 外部依赖与权限
 

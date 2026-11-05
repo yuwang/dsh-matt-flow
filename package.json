@@ -17,7 +17,8 @@
     "cordis.patch.yml",
     "locale/*.json",
     "icon.svg",
-    "README.md"
+    "README.md",
+    "screenshots.json"
   ],
   "engines": {
     "node": ">=20"

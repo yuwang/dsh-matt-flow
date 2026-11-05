@@ -1,0 +1,55 @@
+{
+  "name": "dsh-matt-flow",
+  "version": "0.7.2",
+  "description": "把本地的 Matt Pocock Agent Skills 套件编排成一条带闸门的开发工作流：预设 + 流程提示词 + 阶段工具（浏览器侧卡片在 dsh-matt-flow-ui）",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./locale/*.json": "./locale/*.json",
+    "./icon": "./icon.svg",
+    "./package.json": "./package.json",
+    "./client": "./client.js"
+  },
+  "files": [
+    "index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "locale/*.json",
+    "icon.svg",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web",
+      "immediately": true,
+      "inject": [
+        "@deepseek-ai/dsh-client-ui-tool"
+      ]
+    }
+  },
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OWNER/dsh-matt-flow.git"
+  },
+  "homepage": "https://github.com/OWNER/dsh-matt-flow#readme",
+  "bugs": {
+    "url": "https://github.com/OWNER/dsh-matt-flow/issues"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "agent-preset",
+    "workflow",
+    "matt-pocock",
+    "skills"
+  ]
+}

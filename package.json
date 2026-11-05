@@ -37,11 +37,11 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/OWNER/dsh-matt-flow.git"
+    "url": "git+https://github.com/yuwang/dsh-matt-flow.git"
   },
-  "homepage": "https://github.com/OWNER/dsh-matt-flow#readme",
+  "homepage": "https://github.com/yuwang/dsh-matt-flow#readme",
   "bugs": {
-    "url": "https://github.com/OWNER/dsh-matt-flow/issues"
+    "url": "https://github.com/yuwang/dsh-matt-flow/issues"
   },
   "keywords": [
     "dsh",

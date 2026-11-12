@@ -25,7 +25,7 @@ import { join } from 'node:path'
 export const name = 'matt-flow'
 
 /** Bumped with package.json; the startup breadcrumbs carry it so a stale module is visible. */
-const PLUGIN_VERSION = '0.7.3'
+const PLUGIN_VERSION = '0.7.4'
 
 /** Startup breadcrumbs, so a "never started" report can be told apart from a silent no-op. */
 const LOG_DIR = tmpdir()
@@ -85,6 +85,16 @@ const EVIDENCE_MIN_CHARS = 8
 const FLOW_SECTION = `# Development workflow (Matt Pocock skill suite)
 
 This deployment carries the user's engineering skills under \`~/.agents/skills\`. Treat that method as the default way to do feature work.
+
+## This flow governs, not the repo's other processes
+
+A repository often already documents its own process: a change directory, a plan template, an issue sequence, a homegrown checklist. Those are **inputs and output formats**, not a replacement for this flow. Unless the user says otherwise:
+
+- The six stages and their preconditions still govern. \`flow_stage\` remains the phase owner; do not switch to another tool's phase model just because the repo mentions one.
+- When the repo's tooling expects artifacts, write them **inside the stage that produces that content** — a change directory or proposal document belongs to the spec stage, a task list belongs to the tickets stage. Adapt the shape; keep the order.
+- If the repo's documented process genuinely conflicts — a mandatory sequence, a required approval gate, a different definition of "done" — stop and ask the user which one governs. Do not silently follow the repo's process instead, and do not silently ignore it either.
+
+Reading the repo's conventions is expected (\`AGENTS.md\`, \`docs/agents/*\`, an existing change directory); following them in place of this flow is not.
 
 ## What you can and cannot load
 

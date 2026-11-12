@@ -1,6 +1,6 @@
 {
   "name": "dsh-matt-flow",
-  "version": "0.7.3",
+  "version": "0.7.4",
   "description": "把 Matt Pocock 技能套件编成六阶段带前置条件的开发工作流预设：拷问、规范、任务、实现、评审、收尾。含输入框工具行的阶段胶囊与决策卡片。",
   "type": "module",
   "main": "index.js",

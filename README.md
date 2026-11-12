@@ -19,10 +19,10 @@
 | 组成 | 作用 |
 |---|---|
 | `preset-matt` | 新增一个 agent 预设 `matt-flow`，插件集即官方 `standard` 预设 + 本包的 `matt-flow` 插件。在新建会话的预设选择器里出现。 |
-| 系统提示词段落 `matt-flow` | 告诉模型：哪些技能它能自己 `skill` 加载（`grilling`/`tdd`/`code-review`/`diagnosing-bugs`…），哪些只能由你 `/命令` 触发（`/to-spec`、`/to-tickets`…），以及 拷问 → 规范 → 任务 → 实现 → 评审 → 收尾 的顺序、每阶段该做什么。 |
+| 系统提示词段落 `matt-flow` | 告诉模型：哪些技能它能自己 `skill` 加载（`grilling`/`tdd`/`code-review`/`diagnosing-bugs`…），哪些只能由你 `/命令` 触发（`/to-spec`、`/to-tickets`…），以及 拷问 → 规范 → 任务 → 实现 → 收尾 的顺序、每阶段该做什么。评审不是独立阶段，它在实现里完成。 |
 | 工具 `flow_stage` | 记录并推进某个 feature 的阶段，落盘到 `.scratch/<feature>/flow.json`。前进必须逐级、且要满足前置条件；回退（返工）允许。 |
 | 工具 `flow_ask` + 决策卡（`client.js`） | 拷问阶段把决策做成对话里的卡片：每题一组选项加一个补充输入框，一次最多三题。点「提交选择」后，答案作为你的下一条消息发出，模型接着往下走。卡片由本包自己的浏览器模块渲染，**不依赖 dsh-genui**。 |
-| 阶段胶囊（`client.js`） | 输入框工具行左侧的小胶囊：当前阶段、进度、下一阶段的前置条件。点开浮层看完整流程。只在 Matt 预设的会话里出现。 |
+| 阶段胶囊（`client.js`） | 输入框工具行左侧的小胶囊：当前阶段、第几步、**正在运行哪些子代理**。点开浮层看每个阶段的说明和前置条件。只在 Matt 预设的会话里出现。 |
 
 ### 一个包，两行挂载
 
@@ -38,7 +38,9 @@
 
 **它是什么**
 
-一条带前置条件的开发工作流。每个 feature 走同一条路：拷问 → 规范 → 任务 → 实现 → 评审 → 收尾。每一步做完，才能进下一步；跳级会被 `flow_stage` 拒绝。
+一条带前置条件的开发工作流。每个 feature 走同一条路：拷问 → 规范 → 任务 → 实现 → 收尾。每一步做完，才能进下一步；跳级会被 `flow_stage` 拒绝。
+
+评审不单独占一格：每张任务单实现完就评审、提交，也可以让子代理评审的同时开始下一张。胶囊会把**正在跑的子代理**按名字列出来，所以并行是看得见的。
 
 它不是新的 AI 能力，而是把 Matt Pocock 那套技能串成有顺序、有产出的流程——技能本身仍然从 `~/.agents/skills` 读取，插件只负责编排。
 
@@ -54,7 +56,7 @@
 
 1. 新建会话，预设选「Matt 工程流」
 2. 直接说需求。它会先拷问：把决策做成卡片（选项 + 补充输入框），一次最多三题
-3. 谈定后写规范、拆任务单、按单实现、评审、收尾
+3. 谈定后写规范、拆任务单、按单实现（每张单实现完就评审、提交）、收尾
 4. 全程可以用输入框左侧的胶囊看进度；点开浮层能看到每一步要做什么
 
 三条命令按需使用：
@@ -78,7 +80,7 @@
 
 ## 阶段与前置条件
 
-`拷问 → 规范 → 任务 → 实现 → 评审 → 收尾`
+`拷问 → 规范 → 任务 → 实现 → 收尾`
 
 进入下一阶段前要满足什么：
 
@@ -88,8 +90,7 @@
 | `spec` | `evidence` 写明拷问收口了什么决策；且 `docs/agents/issue-tracker.md` 存在 |
 | `tickets` | `.scratch/<feature>/spec.md` 存在且 ≥ 200 字符 |
 | `implement` | `.scratch/<feature>/issues/` 下至少 1 个 `.md` |
-| `review` | `evidence` 写明跑过的 typecheck 与测试 |
-| `done` | 说明评审结论与提交 |
+| `done` | 说明实现完成、评审通过、改动已提交 |
 
 前置条件只校验**能校验的部分**（文件是否存在、内容是否够量、evidence 是否非空）。它不假装验证"测试真跑过了"——那句证据由模型自己写，你能在 `flow.json` 的 history 里看到它。
 
@@ -103,13 +104,21 @@ Matt 的套件有一条前置：`/setup-matt-pocock-skills`，用来定下 issue
 
 ## 安装
 
-从 GitHub 装：
+从 npm 装（推荐，预构建，装得快）：
+
+```bash
+dsh plugin add dsh-matt-flow
+```
+
+从 GitHub 装（拿到的是仓库最新代码，但需要本地构建）：
 
 ```bash
 dsh plugin add git+https://github.com/yuwang/dsh-matt-flow
 ```
 
-或在 DSH 的 Plugins 页面填这个地址。装完**重启一次**，再**新建会话**，在预设置换器里选「Matt 工程流 / Matt Flow」。
+也可以在 DSH 的 Plugins 页面填上面任一地址。装完**重启一次**，再**新建会话**，在预设置换器里选「Matt 工程流 / Matt Flow」。
+
+> npm 包名为 `dsh-matt-flow`。如果 `npm view dsh-matt-flow version` 报 404，说明这一版还没发布，改用 GitHub 地址装。
 
 也可以在本地开发时用目录安装：
 
@@ -137,7 +146,7 @@ dsh plugin --profile desktop add /path/to/dsh-matt-flow
 1. 新建会话，选 `Matt Flow`，把你的想法说出来。
 2. 模型会拉 `grilling` 跟你把设计问清楚，而不是直接改代码。
 3. 它调 `flow_stage({action:"advance", to:"spec"})` 前进时，前置条件要求它先把决策写进 evidence。
-4. 规范写进 `.scratch/<feature>/spec.md`，任务单写进 `.scratch/<feature>/issues/`，实现阶段逐张任务单走 `tdd`，最后 `code-review`。
+4. 规范写进 `.scratch/<feature>/spec.md`，任务单写进 `.scratch/<feature>/issues/`。实现阶段逐张任务单走 `tdd`，每张做完就跑 `code-review` 并提交；评审可以让子代理并行做。
 5. 随时 `flow_stage({action:"status", feature:"..."})` 看进度和下一阶段的前置条件。
 
 ## 本地开发

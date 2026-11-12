@@ -69,6 +69,12 @@ window.__ModuleLoader__.load({
   background:var(--dsw-alias-brand-primary); }
 .mf-chip-label { white-space:nowrap; }
 .mf-chip-count { color:var(--dsw-alias-label-secondary); font-variant-numeric:tabular-nums; }
+.mf-chip-running { color:var(--dsw-alias-brand-primary); font-variant-numeric:tabular-nums; }
+.mf-pop-running { display:flex; flex-direction:column; gap:3px; padding-top:2px;
+  border-top:1px solid var(--dsw-alias-border-l1); }
+.mf-pop-running-head { color:var(--dsw-alias-label-secondary); font-size:11px; }
+.mf-pop-running-item { color:var(--dsw-alias-label-primary); }
+.mf-pop-running-item::before { content:'⟳ '; color:var(--dsw-alias-brand-primary); }
 .mf-pop { position:absolute; left:0; bottom:calc(100% + 8px); z-index:30; width:292px; box-sizing:border-box;
   display:flex; flex-direction:column; gap:8px; padding:12px 14px; font-size:12px;
   border:1px solid var(--dsw-alias-border-l1); border-radius:var(--dsw-radius-lg);
@@ -282,7 +288,6 @@ window.__ModuleLoader__.load({
       { id: 'spec', label: '规范' },
       { id: 'tickets', label: '任务' },
       { id: 'implement', label: '实现' },
-      { id: 'review', label: '评审' },
       { id: 'done', label: '收尾' },
     ]
 
@@ -293,7 +298,6 @@ window.__ModuleLoader__.load({
       spec: '/to-spec',
       tickets: '/to-tickets',
       implement: '/implement',
-      review: '/code-review',
       done: null,
     }
 
@@ -305,14 +309,13 @@ window.__ModuleLoader__.load({
       grill: '约定决策和术语',
       spec: '约定问题、方案、用户故事、决策、测试边界、范围',
       tickets: '约定粒度，拆成可独立验证的任务清单',
-      implement: '使用 TDD 的方式实现',
-      review: '核验是否符合项目惯例和新增规范',
-      done: '结束本轮变更',
+      implement: '使用 TDD 的方式实现，并在收尾前做评审',
+      done: '结束本轮变更：核验是否符合项目惯例和新增规范',
     }
 
     /** Read the projection without assuming hooks exist (older slots omit them). */
     /** Legacy logs recorded the retired pre-grill stages; fold them onto the first one. */
-    const STAGE_ALIASES = { setup: 'grill', idea: 'grill' }
+    const STAGE_ALIASES = { setup: 'grill', idea: 'grill', review: 'done' }
 
     /** Chinese label for a stage id, falling back to the id itself. */
     function stageLabel(id) {
@@ -338,9 +341,28 @@ window.__ModuleLoader__.load({
       return useSessions((state) => state.byId[props.sessionId]?.projectionValues?.agentPreset)
     }
 
+    /**
+     * Names of the subagents currently running under this session. The subagent
+     * UI reads the same `subagentCatalog` projection through `useSessions`, so
+     * this shows exactly the children that surface in the header catalog.
+     */
+    function useRunningSubagents(props) {
+      const useSessions = props.useSessions
+      if (typeof useSessions !== 'function' || typeof props.sessionId !== 'string') return []
+      const catalog = useSessions((state) => {
+        const session = state.byId[props.sessionId]
+        return session && session.projectionValues ? session.projectionValues.subagentCatalog : undefined
+      })
+      const entries = catalog && Array.isArray(catalog.entries) ? catalog.entries : []
+      return entries
+        .filter((entry) => entry && entry.activity === 'running' && entry.mode !== 'external')
+        .map((entry) => (typeof entry.label === 'string' && entry.label.trim() ? entry.label.trim() : '子代理'))
+    }
+
     function StageChip(props) {
       const preset = useSessionPreset(props)
       const flow = useFlow(props.useProjection)
+      const running = useRunningSubagents(props)
       const [open, setOpen] = React.useState(false)
       const [picked, setPicked] = React.useState(null)
       const box = React.useRef(null)
@@ -391,6 +413,10 @@ window.__ModuleLoader__.load({
             h('span', { key: 'fill', style: { width: `${percent}%` } })),
           h('span', { key: 'label', className: 'mf-chip-label' }, stage.label),
           h('span', { key: 'count', className: 'mf-chip-count' }, `${currentIndex + 1}/${STAGES.length}`),
+          running.length > 0
+            ? h('span', { key: 'running', className: 'mf-chip-running', title: running.join('、') },
+              `${running.length} 个子代理`)
+            : null,
         ]),
         open
           ? h('div', { key: 'pop', className: 'mf-pop', role: 'dialog' }, [
@@ -417,6 +443,15 @@ window.__ModuleLoader__.load({
               className: 'mf-pop-gate',
             }, isCurrent ? '当前阶段' : isPast ? '已通过' : '未开始'),
             h('div', { key: 'doc', className: 'mf-pop-doc' }, STAGE_DOC[pickedStage?.id] ?? ''),
+            running.length > 0
+              ? h('div', { key: 'running', className: 'mf-pop-running' }, [
+                h('span', { key: 'head', className: 'mf-pop-running-head' }, '并行进行中'),
+                ...running.map((name, index) => h('span', {
+                  key: `sub-${index}`,
+                  className: 'mf-pop-running-item',
+                }, name)),
+              ])
+              : null,
             pickedCommand
               ? h('div', { key: 'next', className: 'mf-pop-next' }, [
                 h('span', { key: 'text' }, '进入命令'),

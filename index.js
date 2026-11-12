@@ -61,10 +61,15 @@ function mark(file, note) {
 
 mark(LOAD_LOG, `module imported v${PLUGIN_VERSION}`)
 
-const STAGES = ['grill', 'spec', 'tickets', 'implement', 'review', 'done']
+const STAGES = ['grill', 'spec', 'tickets', 'implement', 'done']
 
-/** Old logs recorded the retired pre-grill stages; fold them onto the real first stage. */
-const STAGE_ALIASES = { setup: 'grill', idea: 'grill' }
+/**
+ * Retired stages, folded onto the current ladder: `setup`/`idea` predate the
+ * real first stage, and `review` is now an activity inside `implement` — a
+ * feature recorded at `review` had already finished implementing, so it lands
+ * on `done`.
+ */
+const STAGE_ALIASES = { setup: 'grill', idea: 'grill', review: 'done' }
 
 /**
  * Resolve a recorded stage name onto the current ladder.
@@ -133,8 +138,8 @@ When a decision can be answered by picking one of two to four options, put it on
 Prefer \`flow_ask\` over the built-in \`ask_user_question\` whenever an answer needs both a choice and a value — "pick a naming strategy, then give me the actual name", "choose the retry policy, then the count". The built-in card advances the moment a single choice is clicked, so the user never reaches the field; and in a single-select question its text answer clears the choice, so the two cannot be given together. \`flow_ask\` keeps them separate: the option and the note are submitted as one batch. Reserve \`ask_user_question\` for a plain choice with nothing to add.
 2. **spec** — agree the test boundaries with the user first, then write \`.scratch/<feature>/spec.md\`: problem, solution, user stories, decisions, test boundaries, out of scope. Base it on the settled decisions; do not re-interview.
 3. **tickets** — draft the breakdown, then put the granularity to the user before writing any file: how many tickets, and whether each one is small enough to finish in one fresh context window. Only after they agree, write \`.scratch/<feature>/issues/NN-slug.md\`. One vertical slice per ticket that leaves the product working, each declaring \`blocked-by:\`. When you write Chinese, name one ticket 任务单 and the stage 任务. Never write 拆票, 工单, or use 票 as shorthand — 工单 reads as a support ticket, and the other two are not words.
-4. **implement** — one ticket per pass. Load \`tdd\`; work at the pre-agreed seams; typecheck and run that ticket's tests; no scope creep.
-5. **review** — load \`code-review\` for both axes (Standards and Spec), then commit.
+4. **implement** — one ticket per pass. Load \`tdd\`; work at the pre-agreed seams; typecheck and run that ticket's tests; no scope creep. Review is part of this stage, not a stage of its own: review a ticket (load \`code-review\` for both axes — Standards and Spec) and commit as you finish it, or let a subagent review while you start the next ticket. Move to \`done\` only when every ticket is implemented, reviewed and committed.
+5. **done** — wrap up: confirm every ticket is closed, nothing is left uncommitted, and say what the round produced. This is a record of an ending, not more work.
 
 ## Gates
 
@@ -245,15 +250,10 @@ async function checkGate(target, cwd, dir, evidence) {
       ? { ready: true, requirement: '任务已拆成可独立完成的单子' }
       : { ready: false, requirement: `先把任务拆开，写进 ${join(dir, 'issues')}/` }
   }
-  if (target === 'review') {
-    return said.length >= EVIDENCE_MIN_CHARS
-      ? { ready: true, requirement: '实现完成，类型检查和测试都跑过' }
-      : { ready: false, requirement: '先做实现：类型检查和这个任务的测试都要跑通' }
-  }
   if (target === 'done') {
     return said.length >= EVIDENCE_MIN_CHARS
-      ? { ready: true, requirement: '评审通过，改动已提交' }
-      : { ready: false, requirement: '先做评审：标准与规范两个维度都过一遍，再提交' }
+      ? { ready: true, requirement: '实现完成，评审通过，改动已提交' }
+      : { ready: false, requirement: '先做完实现并评审（标准与规范两个维度），再提交' }
   }
   return { ready: true, requirement: '没有前置条件' }
 }

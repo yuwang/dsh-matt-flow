@@ -56,15 +56,14 @@ await writeFile(join(featureDir, 'issues', '01-retry-policy.md'), 'blocked-by: n
 const a4 = await call({ action: 'advance', feature: F, to: 'implement', evidence: 'fly' })
 ok('tickets->implement ok with one ticket', a4.stage === 'implement')
 
-await rejects('implement->review needs evidence', () => call({ action: 'advance', feature: F, to: 'review', evidence: '' }), 'precondition')
-const a5 = await call({ action: 'advance', feature: F, to: 'review', evidence: 'typecheck clean, 4 tests green' })
-ok('implement->review ok', a5.stage === 'review')
-const a6 = await call({ action: 'advance', feature: F, to: 'done', evidence: 'review passed, committed' })
-ok('review->done ok', a6.stage === 'done' && !('next' in a6))
+await rejects('implement->done needs evidence', () => call({ action: 'advance', feature: F, to: 'done', evidence: '' }), 'precondition')
+const a6 = await call({ action: 'advance', feature: F, to: 'done', evidence: 'implemented, reviewed, committed' })
+ok('implement->done ok', a6.stage === 'done' && !('next' in a6))
+await rejects('review is no longer a stage', () => call({ action: 'advance', feature: F, to: 'review', evidence: 'x' }), 'unknown target')
 
 const state = JSON.parse(await readFile(join(featureDir, 'flow.json'), 'utf8'))
-ok('history recorded 5 moves', state.history.length === 5, String(state.history.length))
-ok('history keeps evidence', state.history[3].evidence.includes('typecheck'))
+ok('history recorded 4 moves', state.history.length === 4, String(state.history.length))
+ok('history keeps evidence', state.history[3].evidence.includes('reviewed'))
 
 const back = await call({ action: 'advance', feature: F, to: 'implement', evidence: 'review found a gap' })
 ok('rework move allowed', back.stage === 'implement' && back.moved === false)

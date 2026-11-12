@@ -1,8 +1,16 @@
 # dsh-matt-flow
 
+**主页**：https://github.com/yuwang/dsh-matt-flow
+
 把 [Matt Pocock Agent Skills](https://github.com/mattpocock/skills) 套件编成一条**带前置条件的开发工作流**，作为 DSH 的一个 agent 预设。技能从 `~/.agents/skills` 读取，缺了会自动安装。
 
 它不复制、不改写任何技能；`npx skills update` 之后行为自动跟随上游。
+
+---
+
+感谢你安装使用。如果它对你的工作有帮助，欢迎到 [GitHub 仓库](https://github.com/yuwang/dsh-matt-flow) 点一颗 **Star** —— 这是我继续维护它的主要动力。遇到问题或想要新功能，也欢迎在 [Issues](https://github.com/yuwang/dsh-matt-flow/issues) 里提。
+
+---
 
 ## 它提供什么
 

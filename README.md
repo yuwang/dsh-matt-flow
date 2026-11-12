@@ -118,8 +118,6 @@ dsh plugin add git+https://github.com/yuwang/dsh-matt-flow
 
 也可以在 DSH 的 Plugins 页面填上面任一地址。装完**重启一次**，再**新建会话**，在预设置换器里选「Matt 工程流 / Matt Flow」。
 
-> npm 包名为 `dsh-matt-flow`。如果 `npm view dsh-matt-flow version` 报 404，说明这一版还没发布，改用 GitHub 地址装。
-
 也可以在本地开发时用目录安装：
 
 ```bash

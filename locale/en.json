@@ -1,6 +1,6 @@
 {
   "meta": {
     "title": "Matt Flow",
-    "description": "A gated development workflow preset: grill → spec → tickets → implement → review → wrap-up. Ships the flow_stage, flow_ask and flow_skills tools plus a stage chip in the composer tool row."
+    "description": "A gated development workflow preset: grill → spec → tickets → implement → wrap-up. Ships the flow_stage, flow_ask and flow_skills tools plus a composer stage chip that also lists running subagents."
   }
 }

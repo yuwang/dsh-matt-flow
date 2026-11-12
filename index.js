@@ -143,7 +143,7 @@ Prefer \`flow_ask\` over the built-in \`ask_user_question\` whenever an answer n
 
 ## Gates
 
-\`flow_stage\` owns the phase. Call it with \`action: "status"\` before starting a phase, and \`action: "advance"\` only when that phase's exit criterion is true; it refuses skipped stages and missing artifacts. Stages: grill → spec → tickets → implement → review → done. There is no separate "idea" stage: a feature enters at \`grill\`, which is where the idea is sharpened.
+\`flow_stage\` owns the phase. Call it with \`action: "status"\` before starting a phase, and \`action: "advance"\` only when that phase's exit criterion is true; it refuses skipped stages and missing artifacts. Stages: grill → spec → tickets → implement → done. Review is not a stage: a ticket is reviewed and committed as it is finished, and a subagent may review while the next ticket is already under way. There is no separate "idea" stage either: a feature enters at \`grill\`.
 
 Leaving \`grill\` for \`spec\` needs both the settled decisions in your evidence and \`docs/agents/issue-tracker.md\`. Without that file the step is refused; write it, defaulting to local markdown.
 

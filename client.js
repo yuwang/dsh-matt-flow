@@ -346,23 +346,48 @@ window.__ModuleLoader__.load({
      * UI reads the same `subagentCatalog` projection through `useSessions`, so
      * this shows exactly the children that surface in the header catalog.
      */
-    function useRunningSubagents(props) {
+    /**
+     * Names of the subagents currently running under this session.
+     *
+     * Mirrors how the subagent header derives its catalog: `subagentCatalog` is
+     * an array on the session projection, and an entry is running when the
+     * session-status store says so — the projection itself carries no activity.
+     */
+    function useSubagentState(props) {
       const useSessions = props.useSessions
-      if (typeof useSessions !== 'function' || typeof props.sessionId !== 'string') return []
-      const catalog = useSessions((state) => {
-        const session = state.byId[props.sessionId]
-        return session && session.projectionValues ? session.projectionValues.subagentCatalog : undefined
-      })
-      const entries = catalog && Array.isArray(catalog.entries) ? catalog.entries : []
-      return entries
-        .filter((entry) => entry && entry.activity === 'running' && entry.mode !== 'external')
-        .map((entry) => (typeof entry.label === 'string' && entry.label.trim() ? entry.label.trim() : '子代理'))
+      const useSessionStatus = props.useSessionStatus
+      const sessionId = typeof props.sessionId === 'string' ? props.sessionId : ''
+      const hasHooks = typeof useSessions === 'function' && typeof useSessionStatus === 'function' && sessionId !== ''
+
+      const catalog = hasHooks
+        ? useSessions((state) => {
+          const snapshot = state.projectionsBySession && state.projectionsBySession[sessionId]
+          return snapshot ? snapshot.values && snapshot.values.subagentCatalog : undefined
+        })
+        : undefined
+      const statuses = hasHooks ? useSessionStatus((value) => value) : undefined
+      const summaries = hasHooks ? useSessions((state) => state.byId) : undefined
+
+      const entries = Array.isArray(catalog) ? catalog : []
+      const running = entries
+        .filter((entry) => {
+          if (!entry || !entry.id) return false
+          if (entry.mode === 'external') return false
+          // A child with no status record yet still reports `running` on its
+          // session summary, so fall back to it the way the header catalog does.
+          const status = statuses && typeof statuses.get === 'function' ? statuses.get(entry.id) : undefined
+          const summary = summaries ? summaries[entry.id] : undefined
+          return (status ? status.running : summary ? summary.running : undefined) === true
+        })
+        .map((entry) => (typeof entry.label === 'string' && entry.label.trim() ? entry.label.trim() : entry.id))
+
+      return running
     }
 
     function StageChip(props) {
       const preset = useSessionPreset(props)
       const flow = useFlow(props.useProjection)
-      const running = useRunningSubagents(props)
+      const running = useSubagentState(props)
       const [open, setOpen] = React.useState(false)
       const [picked, setPicked] = React.useState(null)
       const box = React.useRef(null)
@@ -445,7 +470,7 @@ window.__ModuleLoader__.load({
             h('div', { key: 'doc', className: 'mf-pop-doc' }, STAGE_DOC[pickedStage?.id] ?? ''),
             running.length > 0
               ? h('div', { key: 'running', className: 'mf-pop-running' }, [
-                h('span', { key: 'head', className: 'mf-pop-running-head' }, '并行进行中'),
+                h('span', { key: 'head', className: 'mf-pop-running-head' }, '子代理运行中'),
                 ...running.map((name, index) => h('span', {
                   key: `sub-${index}`,
                   className: 'mf-pop-running-item',

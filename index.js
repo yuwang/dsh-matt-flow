@@ -25,7 +25,7 @@ import { join } from 'node:path'
 export const name = 'matt-flow'
 
 /** Bumped with package.json; the startup breadcrumbs carry it so a stale module is visible. */
-const PLUGIN_VERSION = '0.7.4'
+const PLUGIN_VERSION = '0.7.5'
 
 /** Startup breadcrumbs, so a "never started" report can be told apart from a silent no-op. */
 const LOG_DIR = tmpdir()

@@ -40,7 +40,9 @@
 
 一条带前置条件的开发工作流。每个 feature 走同一条路：拷问 → 规范 → 任务 → 实现 → 收尾。每一步做完，才能进下一步；跳级会被 `flow_stage` 拒绝。
 
-评审不单独占一格：每张任务单实现完就评审、提交，也可以让子代理评审的同时开始下一张。胶囊会把**正在跑的子代理**按名字列出来，所以并行是看得见的。
+评审不单独占一格：每张任务单实现完就评审、提交。
+
+子代理不限于评审——探查、搜索、跑测试、独立实现都可以。胶囊会把**当前正在运行的子代理**按各自的名字列出来，不管它们在做什么。
 
 它不是新的 AI 能力，而是把 Matt Pocock 那套技能串成有顺序、有产出的流程——技能本身仍然从 `~/.agents/skills` 读取，插件只负责编排。
 
@@ -144,7 +146,7 @@ dsh plugin --profile desktop add /path/to/dsh-matt-flow
 1. 新建会话，选 `Matt Flow`，把你的想法说出来。
 2. 模型会拉 `grilling` 跟你把设计问清楚，而不是直接改代码。
 3. 它调 `flow_stage({action:"advance", to:"spec"})` 前进时，前置条件要求它先把决策写进 evidence。
-4. 规范写进 `.scratch/<feature>/spec.md`，任务单写进 `.scratch/<feature>/issues/`。实现阶段逐张任务单走 `tdd`，每张做完就跑 `code-review` 并提交；评审可以让子代理并行做。
+4. 规范写进 `.scratch/<feature>/spec.md`，任务单写进 `.scratch/<feature>/issues/`。实现阶段逐张任务单走 `tdd`，每张做完就跑 `code-review` 并提交。
 5. 随时 `flow_stage({action:"status", feature:"..."})` 看进度和下一阶段的前置条件。
 
 ## 本地开发

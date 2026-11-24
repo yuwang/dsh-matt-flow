@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process'
 import { mkdtempSync, mkdirSync, writeFileSync, readFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { dirname, join } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 // The plugin reads the agents home once, at import time, so every case runs in
 // its own child process with its own DSH_AGENTS_HOME.
@@ -51,7 +51,7 @@ function fakeRepo(initialised) {
 // which is the only way to observe a prompt that the model would merely see.
 function run({ home, repo }) {
   const probe = `
-import { apply } from ${JSON.stringify(entry)}
+import { apply } from ${JSON.stringify(pathToFileURL(entry).href)}
 const defs = []
 const asked = []
 const ctx = {
@@ -117,7 +117,7 @@ test('refusing the prompt leaves the repo untouched', () => {
   const home = fakeHome(required)
   const repo = fakeRepo(false)
   const probe = `
-import { apply } from ${JSON.stringify(entry)}
+import { apply } from ${JSON.stringify(pathToFileURL(entry).href)}
 import { existsSync } from 'node:fs'
 const defs = []
 const ctx = {

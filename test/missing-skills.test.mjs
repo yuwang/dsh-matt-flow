@@ -1,5 +1,5 @@
 import { spawnSync } from 'node:child_process'
-import { fileURLToPath } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 import { dirname, join } from 'node:path'
 
 // A fake agents home with no skills, so the module under test sees an
@@ -9,7 +9,7 @@ const here = dirname(fileURLToPath(import.meta.url))
 const entry = join(here, '..', 'index.js')
 
 const probe = `
-import { apply } from ${JSON.stringify(entry)}
+import { apply } from ${JSON.stringify(pathToFileURL(entry).href)}
 const defs = []
 const approval = { request: async () => 'allowed-once' }
 const ctx = {
@@ -50,7 +50,7 @@ ok('flow_stage refuses when skills are missing', threw, out.slice(0, 200))
 // A read-only session must not be written to at all: the guard comes before the
 // skill check, so the refusal names the permission, not the skills.
 const roProbe = `
-import { apply } from ${JSON.stringify(entry)}
+import { apply } from ${JSON.stringify(pathToFileURL(entry).href)}
 const defs = []
 const refused = {
   get: (k) => {
